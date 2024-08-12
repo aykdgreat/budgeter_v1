@@ -9,8 +9,8 @@ const {
 createApp({
    setup() {
       let isHistActive = ref(false)
-      let isRecActive = ref(false)
-      let isStatActive = ref(true)
+      let isRecActive = ref(true)
+      let isStatActive = ref(false)
       let isModalOpen = ref(false)
 
       const budget = ref([])
