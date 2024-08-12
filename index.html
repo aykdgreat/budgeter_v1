@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MyBudgeter - Home</title>
+    <link rel="stylesheet" href="css/budget.css" />
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <!--<link rel="stylesheet" href="css/line-awesome.css" type="text/css" />-->
+    <script src="js/tailwind3.js"></script>
+    
+    <!-- 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    -->
+  </head>
+
+  <body class="select-none font-[Poppins] bg-[#e4e9f1]">
+    <div id="app" class="min-h-screen relative" v-cloak>
+      <header>
+        <div class="logo text-center font-bold text-5xl bg-[#1f2f61] p-3 font-[Poppins] text-[#486ee0] shadow md:px-12 md:py-3 md:text-6xl">
+          My<span class="text-white">Budget</span>er<small class="text-white text-sm">.app</small>
+        </div>
+      </header>
+      <main class="md:px-64">
+        <div class="bg-white my-4 mx-5 rounded-lg p-5 text-center grid grid-cols-3">
+          <div class="text-lg py-2">
+            <h4>
+              <i class="la la-arrow-alt-circle-down text-[#256e2e] text-2xl"></i>
+            </h4>
+            <p class="text-[#1add7b]"># {{ inc }}</p>
+          </div>
+          <div class="text-xl font-bold uppercase leading-10">
+            <h4>Balance</h4>
+            <p :class="sign === '#' ? 'text-[#334fa1]' : 'text-[#cc1212]'">
+              {{sign}} {{ bal }}
+            </p>
+          </div>
+          <div class="text-lg py-2">
+            <h4>
+              <i class="la la-arrow-alt-circle-up text-[#a34a34] text-2xl"></i>
+            </h4>
+            <p class="text-[#cc1212]"># {{ exp }}</p>
+          </div>
+        </div>
+        <div class="flex justify-around">
+           <span class="block">Cash: {{ cashBal }}</span>
+           <span class="block">Account: {{ acctBal }}</span>
+        </div>
+        <div class="px-6">
+          <div class="grid grid-cols-3 place-items-center mb-4 py-2.5 text-center text-[#1f2f61]/80 font-bold">
+            <div class="hist-tab cursor-pointer hover:text-[#1f2f61]" @click="isHistActive = true;isRecActive = false;isStatActive = false">
+              History
+            </div>
+            <div class="recent-tab cursor-pointer hover:text-[#1f2f61]" @click="isRecActive = true;isHistActive = false;isStatActive = false">
+              Recent
+            </div>
+            <div class="inc-tab cursor-pointer hover:text-[#1f2f61]" @click="isStatActive = true;isHistActive = false;isRecActive = false">
+              Statistics
+            </div>
+          </div>
+          <!--{{ Date.now() }} {{ (new Date()).toISOString() }} {{ ((new Date()).toISOString()).substr(0,10) }}-->
+          <div :class="isHistActive ? 'block' : 'hidden'">
+              <form class="mx-12">
+                  <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
+                <!-- <div>
+              <label for="hist-order">Order: </label>
+              <select name="hist-order" class="select">
+                <option value="ASC">Ascending</option>
+                <option value="DESC">Descending</option>
+              </select>
+            </div> -->
+              </form>
+
+            <div v-if="monthInfo.length > 0">
+              <div class="text-center">
+                <div>
+                  <span>{{histMonthWord}} income: </span>
+                  <span># {{monthInc}}</span>
+                </div>
+                <div>
+                  <span>{{histMonthWord}} expense: </span>
+                  <span># {{ monthExp }}</span>
+                </div>
+                <div v-if="histMonth !== (new Date()).getMonth() +1">
+                  <span>{{histMonthWord}} balance: </span>
+                  <span># {{ monthBal }}</span>
+                </div>
+              </div>
+              <ul v-for="(data, key) in sortedMonthInfoData" :key="key">
+                <span class="text-[#696868] text-sm">{{ key }}</span>
+                <li v-for="(item, index) in data" :key="index" @dblclick="editEntry(item.created_at)" class="bg-white ml-2 mr-10 my-2 p-3 shadow-sm relative">
+                  <div class="flex justify-between gap-2">
+                    <span>{{ index + 1 }} {{item.title}}
+                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']" ></i></span>
+                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                  </div>
+                  <div class="absolute -right-14 top-0">
+                      <i class="las la-edit text-slate-600 mr-2 text-2xl mt-2" @click="editEntry(item.created_at)"></i></span>
+                      <i class="las la-trash-alt text-red-600 text-2xl mt-2" @click="deleteEntry(item.created_at)"></i></span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div v-else>
+              <ul>
+                <li class="bg-white mx-2 my-2 p-3 shadow-sm">
+                  No record for {{histMonthWord}} yet, use the form to add
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div :class="isRecActive ? 'block' : 'hidden'">
+            <span class="text-[#696868] text-sm">Today - {{ recent.today }}</span>
+
+            <div v-if="todayInfo.length > 0">
+              <ul>
+                <li v-for="(item, index) in todayInfo" :key="index" class="bg-white mx-2 my-2 p-3 shadow-sm" @dblclick="editEntry(item.created_at)">
+                  <div class="flex justify-between">
+                    <span>{{ index + 1 }} {{item.title}}
+                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
+                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div v-else>
+              <ul>
+                <li class="bg-white mx-2 my-2 p-3 shadow-sm">
+                  No record for today yet, use the form to add
+                </li>
+              </ul>
+            </div>
+
+            <span class="text-[#696868] text-sm">Yesterday - {{ recent.yesterday }}</span>
+
+            <div v-if="yesterdayInfo.length > 0">
+              <ul>
+                <li v-for="(item, index) in yesterdayInfo" :key="index" class="bg-white mx-2 my-2 p-3 shadow-sm" @dblclick="editEntry(item.created_at)">
+                  <div class="flex justify-between">
+                    <span>{{ index + 1 }} {{item.title}}
+                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
+                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div v-else>
+              <ul>
+                <li class="bg-white mx-2 my-2 p-3 shadow-sm">
+                  No record for yesterday yet, use the form to add
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div :class="isStatActive ? 'block' : 'hidden'" class="h-96 flex flex-col justify-center items-center">
+             <div class="mx-auto my-8" ref="chart"></div>
+             <h1 class="text-center text-lg">Income - Expense Ratio for {{ histMonthWord }}</h1>
+              <ul v-show="true">
+                <li class="bg-white mx-2 my-2 p-3 shadow-sm">
+                  Nothing record found, click <a href="#" @click="isModalOpen = true">here</a> to add now :)
+                </li>
+              </ul>
+          </div>
+        </div>
+      </main>
+
+      <div class="select-text flex fixed w-full top-0 left-0 items-center justify-center min-h-full text-lg bg-black/90 p-12 z-50" v-show="isModalOpen" @dblclick="isModalOpen = false">
+        <form @submit.prevent="handleSubmit" class="max-w-full bg-white p-5" autocomplete="off">
+          <h2 class="text-center mb-2">{{ isEditting ? "Edit" : "New" }} Transaction</h2>
+          <div class="text-red-600 text-center text-sm mb-1" id="error-div" v-show="msg">
+            {{ msg }}
+          </div>
+          <div class="flex max-w-sm justify-between items-baseline">
+            <label for="tr-title" class="w-32 mr-6">Title
+              <span class="text-red-500 text-lg text-right">*</span></label>
+            <input type="text" v-model.trim="title" name="tr-title" placeholder="e.g. data purchase" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" />
+          </div>
+          <div class="flex max-w-sm justify-between items-baseline">
+            <label for="tr-amount" class="w-32 mr-6">Amount <span class="text-red-500 text-lg">*</span></label>
+            <input type="number" v-model.number="amount" placeholder="2500" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" />
+          </div>
+          <div class="flex max-w-sm justify-between items-baseline">
+            <label for="tr-type" class="w-32 mr-6">Type</label>
+            <select v-model="type" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double">
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+          <div class="flex max-w-sm justify-between items-baseline">
+            <label for="tr-type" class="w-32 mr-6">Date <span class="text-red-500 text-lg">*</span></label>
+            <input type="date" v-model="date" name="tr-date" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" value="" />
+          </div>
+          <div class="flex max-w-sm justify-between items-baseline">
+            <label for="option" class="w-32 mr-6">Option</label>
+            <select name="option" v-model="option" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double">
+              <option value="cash">Cash</option>
+              <option value="transfer">Transfer</option>
+            </select>
+          </div>
+          <input type="submit" class="w-full rounded-full bg-[#1f2f61] my-1 p-2 text-white border-none uppercase font-[Poppins] cursor-pointer text-xl" name="add-transaction" :value="[isEditting ? 'Edit Transaction' : 'Add Transaction']" />
+          <input type="button" @click="isModalOpen = false;isEditting = null" class="w-full rounded-full bg-red-600 my-1 p-2 text-white border-none font-[Poppins] cursor-pointer text-xl" value="Close" />
+        </form>
+      </div>
+      <div class="h-24"></div>
+      <footer class="absolute bottom-0 left-0 w-full text-center bg-[#1f2f61] py-5 px-12 font-[Poppins] text-white h-16 mt-2.5">Copyright &copy; 2024
+        <a class="text-[#869feb] underline decoration-dotted decoration-1 underline-offset-4" href="http://github.com/aykdgreat">AYKdgreat</a>
+      </footer>
+      <button class="fixed left-12 bottom-20 z-10 bg-[#008080]/90 h-12 w-12 rounded-full text-white border-none outline-none cursor-pointer focus:bg-[#008080] hover:h-14 hover:w-14 transition-all ease-in-out duration-700">
+         <i class="las la-calculator text-4xl font-extrabold"></i>
+      </button>
+      <button v-if="!isModalOpen" @click="isModalOpen = true" class="fixed right-12 bottom-20 z-10 bg-[#1f2f61b3] h-12 w-12 rounded-full text-white border-none outline-none cursor-pointer focus:bg-[#1f2f61] hover:rotate-[360deg] transition-transform ease-in-out duration-700">
+         <i class="las la-plus text-3xl font-extrabold"></i>
+      </button>
+    </div>
+
+    <script src="js/vue.global.js"></script>
+    <script src="js/script.js"></script>
+    
+    
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+  </body>
+</html>
