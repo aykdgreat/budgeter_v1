@@ -23,7 +23,7 @@ createApp({
       const amount = ref("")
       const type = ref("income")
       const date = ref("")
-      const option = ref("cash")
+      const mode = ref("cash")
       const msg = ref("")
 
       const histMonth = ref("")
@@ -48,12 +48,17 @@ createApp({
       const ratio = ref(0)
       const canvas = ref(document.createElement("canvas"))
       const ctx = ref(null)
+      
+      const isCalcOpen = ref(false)
+      const display = ref("")
+      const op = ['+', '-', '*', '/']
+      const prev = ref("")
+      const selectedOp = ref("")
 
       const recent = {
          today: ((new Date()).toISOString()).substr(0, 10),
          yesterday: (new Date(Date.now() - 86400000)).toISOString().substr(0, 10)
       }
-
 
       const setHistMonth = (val) => {
          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -74,13 +79,12 @@ createApp({
          msg.value = ""
 
          if(isEditting.value=== null) {
-            
             budget.value.unshift({
                title: title.value,
                amount: parseInt(amount.value),
                type: type.value,
                date: date.value,
-               option: option.value,
+               mode: mode.value,
                created_at: Date.now()
             })
          } else {
@@ -89,19 +93,24 @@ createApp({
             budget.value[tempId.value].date = date.value
             budget.value[tempId.value].amount = amount.value
             budget.value[tempId.value].type = type.value
-            budget.value[tempId.value].option = option.value
+            budget.value[tempId.value].mode = mode.value
             isEditting.value = null
          }
 
          updateUI()
          localStorage.setItem("budget", JSON.stringify(budget.value))
          
+         resetFields()
+         isModalOpen.value = false
+      }
+      
+      const resetFields = () => {
          title.value = ""
          amount.value = ""
          type.value = "income"
          date.value = ""
-         option.value = "cash"
-         isModalOpen.value = false
+         mode.value = "cash"
+         isEditting.value = null
       }
 
       let calcIncExp = (type, arr) => {
@@ -114,11 +123,11 @@ createApp({
          })
          return sum
       }
-      let calcOptionBal = (option, type, arr) => {
+      let calcOptionBal = (mode, type, arr) => {
          let sum = 0
 
          arr.forEach(entry => {
-            if (entry.option === option && entry.type === type) {
+            if (entry.mode === mode && entry.type === type) {
                sum += entry.amount
             }
          })
@@ -160,7 +169,7 @@ createApp({
          amount.value = isEditting.value.amount
          type.value = isEditting.value.type
          date.value = isEditting.value.date
-         option.value = isEditting.value.option
+         mode.value = isEditting.value.mode
          isModalOpen.value = true
       }
 
@@ -169,7 +178,7 @@ createApp({
             inc.value = calcIncExp("income", monthData.value)
             exp.value = calcIncExp("expense", monthData.value)
             cashBal.value = (calcOptionBal("cash", "income", monthData.value) - calcOptionBal("cash", "expense", monthData.value))
-            acctBal.value = (calcOptionBal("transfer", "income", monthData.value) - calcOptionBal("transfer", "expense", monthData.value))
+            acctBal.value = (calcOptionBal("account", "income", monthData.value) - calcOptionBal("account", "expense", monthData.value))
             updateChart(inc.value, exp.value)
             
             todayInfo.value = budget.value.filter(entry => entry.date === recent.today) || []
@@ -180,19 +189,13 @@ createApp({
          }
          
       const createChart = () => {
-         
          canvas.value.width = 150
          canvas.value.height = 150
-         
          chart.value.appendChild(canvas.value)
-         
          ctx.value = canvas.value.getContext("2d")
-         
          ctx.value.lineWidth = 20
       }
-      
       function updateChart(inc, exp){
-
          ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
          
          ratio.value = inc / (inc+exp)
@@ -207,9 +210,44 @@ createApp({
          ctx.value.arc( canvas.value.width/2, canvas.value.height/2, 50, 0,(1 - ratio.value) * 2 * Math.PI,false)
          ctx.value.stroke()
       }
-/*
-*/   
-
+      
+      const button = (value) => {
+         if (value === 'c') {
+            display.value = ""
+            prev.value = ""
+            selectedOp.value = ""
+         } else if (value === 'd') {
+            if(display.value.length > 0) {
+               display.value = display.value.substr(0, display.value.length-1)
+            }
+         } else if (op.includes(value)) {
+            calculate()
+            prev.value = display.value
+            display.value = ""
+            selectedOp.value = value
+         } else if (value === '=') {
+            calculate()
+         } else {
+            display.value = display.value + value
+         }
+      }
+      const calculate = () => {
+            
+            if (selectedOp.value === '+') {
+               display.value = +prev.value + +display.value
+            } else if (selectedOp.value === '-') {
+               display.value = prev.value - display.value
+            } else if (selectedOp.value === '*') {
+               display.value = prev.value * display.value
+            } else if (selectedOp.value === '/') {
+               display.value = prev.value / display.value
+            }
+            
+            prev.value = ""
+            selectedOp.value = ""
+         
+      }
+      
       onMounted(() => {
          setHistMonth()
          budget.value = localStorage.getItem("budget") ? JSON.parse(localStorage.getItem("budget")) : []
@@ -220,12 +258,14 @@ createApp({
 
       return {
          isHistActive, isRecActive, isStatActive, isModalOpen,
-         budget, sign, bal, inc, exp, title, amount, type, date, option,
+         budget, sign, bal, inc, exp, title, amount, type, date, mode,
          msg, handleSubmit, calcIncExp,
          setHistMonth, histMonth, fetchMonthInfo, monthInfo, monthInfoData, sortedMonthInfoData,
          monthInc, monthExp, histMonthWord, recent, todayInfo, yesterdayInfo,
          updateUI, deleteEntry, monthBal, calcOptionBal, cashBal, acctBal, monthData, editEntry,
-         isEditting, createChart, chart
+         isEditting, createChart, chart,
+         isCalcOpen, display, button, prev, selectedOp,
+         resetFields
       }
    }
 }).mount("#app")

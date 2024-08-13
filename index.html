@@ -62,7 +62,7 @@
               Statistics
             </div>
           </div>
-          <!--{{ Date.now() }} {{ (new Date()).toISOString() }} {{ ((new Date()).toISOString()).substr(0,10) }}-->
+
           <div :class="isHistActive ? 'block' : 'hidden'">
               <form class="mx-12">
                   <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
@@ -108,7 +108,7 @@
                 <li v-for="(item, index) in data" :key="index" @dblclick="editEntry(item.created_at)" class="bg-white ml-2 mr-10 my-2 p-3 shadow-sm relative">
                   <div class="flex justify-between gap-2">
                     <span>{{ index + 1 }} {{item.title}}
-                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']" ></i></span>
+                      <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile-alt']" ></i></span>
                     <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                   <div class="absolute -right-14 top-0">
@@ -137,7 +137,7 @@
                 <li v-for="(item, index) in todayInfo" :key="index" class="bg-white mx-2 my-2 p-3 shadow-sm" @dblclick="editEntry(item.created_at)">
                   <div class="flex justify-between">
                     <span>{{ index + 1 }} {{item.title}}
-                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
+                      <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
                     <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                 </li>
@@ -160,7 +160,7 @@
                 <li v-for="(item, index) in yesterdayInfo" :key="index" class="bg-white mx-2 my-2 p-3 shadow-sm" @dblclick="editEntry(item.created_at)">
                   <div class="flex justify-between">
                     <span>{{ index + 1 }} {{item.title}}
-                      <i :class="['las', item.option === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
+                      <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
                     <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                 </li>
@@ -177,10 +177,13 @@
             </div>
           </div>
 
-          <div :class="isStatActive ? 'block' : 'hidden'" class="h-72 flex flex-col justify-center items-center">
-             <div class="mx-auto my-8" ref="chart"></div>
-             <h1 class="text-center text-lg">Income - Expense Ratio for {{ histMonthWord }}</h1>
-              <ul v-show="true">
+          <div :class="isStatActive ? 'block' : 'hidden'" class="h-64">
+             
+             <div v-if="monthData.length == 0" class="flex flex-col justify-center items-center">
+                <div class="mx-auto my-8" ref="chart"></div>
+                <h1 class="text-center text-lg">Income - Expense Ratio for present month</h1>
+             </div>
+              <ul v-else>
                 <li class="bg-white mx-2 my-2 p-3 shadow-sm">
                   No record found, click 
                     <a @click="isModalOpen = true" class="text-[#869feb] underline decoration-dotted decoration-1 underline-offset-4" href="#">here</a>
@@ -191,11 +194,11 @@
         </div>
       </main>
 
-      <div class="select-text flex fixed w-full top-0 left-0 items-center justify-center min-h-full text-lg bg-black/90 p-12 z-50" v-show="isModalOpen" @dblclick="isModalOpen = false">
+      <div class="select-text flex fixed w-full top-0 left-0 items-center justify-center min-h-full text-lg bg-black/90 p-12 z-50" v-show="isModalOpen">
         <form @submit.prevent="handleSubmit" class="max-w-full bg-white p-5" autocomplete="off">
           <h2 class="text-center mb-2">{{ isEditting ? "Edit" : "New" }} Transaction</h2>
-          <div class="text-red-600 text-center text-sm mb-1" id="error-div" v-show="msg">
-            {{ msg }}
+          <div class="text-red-600 text-center text-sm mb-1 h-4">
+            <span>{{ msg }}</span>
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
             <label for="tr-title" class="w-32 mr-6">Title
@@ -204,39 +207,73 @@
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
             <label for="tr-amount" class="w-32 mr-6">Amount <span class="text-red-500 text-lg">*</span></label>
-            <input type="number" v-model.number="amount" placeholder="2500" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" />
+            <input type="number" name="tr-amount" v-model.number="amount" placeholder="2500" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" />
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
             <label for="tr-type" class="w-32 mr-6">Type</label>
-            <select v-model="type" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double">
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
+            <div class="w-full bg-[#eee] p-2.5 border-b-[#1f2f61] mb-4 flex justify-evenly">
+               <input name="tr-type" type="radio" v-model="type" value="income">Income
+               <input name="tr-type" type="radio" v-model="type" value="expense">Expense
+            </div>
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
-            <label for="tr-type" class="w-32 mr-6">Date <span class="text-red-500 text-lg">*</span></label>
+            <label for="tr-date" class="w-32 mr-6">Date <span class="text-red-500 text-lg">*</span></label>
             <input type="date" v-model="date" name="tr-date" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double" value="" />
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
-            <label for="option" class="w-32 mr-6">Option</label>
-            <select name="option" v-model="option" class="w-full bg-[#eee] p-2.5 border-b-[3px] border-b-[#1f2f61] mb-4 focus:outline-[#1f2f61] focus:outline-double">
-              <option value="cash">Cash</option>
-              <option value="transfer">Transfer</option>
-            </select>
+            <label for="tr-mode" class="w-32 mr-6">Pay. Mode</label>
+            <div class="w-full bg-[#eee] p-2.5 border-b-[#1f2f61] mb-4 flex justify-evenly">
+               <input name="tr-mode" type="radio" v-model="mode" value="cash">Cash
+               <input name="tr-mode" type="radio" v-model="mode" value="account">Account
+            </div>
           </div>
           <input type="submit" class="w-full rounded-full bg-[#1f2f61] my-1 p-2 text-white border-none uppercase font-[Poppins] cursor-pointer text-xl" name="add-transaction" :value="[isEditting ? 'Edit Transaction' : 'Add Transaction']" />
-          <input type="button" @click="isModalOpen = false;isEditting = null" class="w-full rounded-full bg-red-600 my-1 p-2 text-white border-none font-[Poppins] cursor-pointer text-xl" value="Close" />
+          <div class="grid grid-cols-3 gap-3">
+             <input type="button" @click="isModalOpen = false" class="col-span-2 rounded-full bg-red-600 my-1 p-2 text-white border-none font-[Poppins] cursor-pointer text-xl mr-2" value="Close" />
+             <input type="button" @click="resetFields" class="rounded-full bg-slate-600 my-1 p-2 text-white border-none font-[Poppins] cursor-pointer text-xl" value="Reset" />
+          </div>
         </form>
+      </div>
+      <div class="select-text flex fixed w-full top-0 left-0 items-center justify-center min-h-full text-lg bg-black/90 p-12 z-50" v-show="isCalcOpen">
+          <div class="max-w-full h-[480px] bg-white pt-5 pb-8 px-10 text-xl font-semibold">
+          <h2 class="text-center mb-4">Calculator</h2>
+             
+          <p class="h-12 text-3xl mb-1 w-64 p-2 pr-12 border border-teal-600 rounded-sm overflow-x-scroll relative" style="direction:rtl">{{display}}
+               <button class="h-12 py-2 px-1 absolute -right-0 top-0 border border-l-teal-900 bg-slate-100 cursor-pointer" @click="button('d')"><i class="las la-arrow-circle-left"></i></button>
+          </p>
+          <div class="h-8">
+             <small class="w-full mb-2 text-right border-white border-2" v-if="selectedOp">{{prev}} {{selectedOp}} {{display}}</small>
+          </div>
+            <div class="grid grid-cols-4 gap-2 max-w-sm">
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('7')">7</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('8')">8</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('9')">9</button>
+               <button class="h-14 w-14 p-4 rounded border bg-teal-600 text-white" @click="button('+')">+</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('4')">4</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('5')">5</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('6')">6</button>
+               <button class="h-14 w-14 p-4 rounded border bg-teal-600 text-white" @click="button('-')">-</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('1')">1</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('2')">2</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('3')">3</button>
+               <button class="h-14 w-14 p-4 rounded border bg-teal-600 text-white" @click="button('*')">*</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600 bg-slate-200" @click="button('c')">C</button>
+               <button class="h-14 w-14 p-4 rounded border border-teal-600" @click="button('0')">0</button>
+               <button class="h-14 w-14 p-4 rounded border bg-teal-600 text-white" @click="button('=')">=</button>
+               <button class="h-14 w-14 p-4 rounded border bg-teal-600 text-white" @click="button('/')">/</button>
+               <button class="h-14 col-span-4 p-4 rounded border bg-red-600 text-white" @click="isCalcOpen = false">Close</button>
+            </div>
+        </div>
       </div>
       <div class="h-24"></div>
       <footer class="absolute bottom-0 left-0 w-full text-center bg-[#1f2f61] py-5 px-12 font-[Poppins] text-white h-16 mt-2.5">Copyright &copy; 2024
         <a class="text-[#869feb] underline decoration-dotted decoration-1 underline-offset-4" href="http://github.com/aykdgreat">AYKdgreat</a>
       </footer>
-      <button class="fixed left-12 bottom-20 z-10 bg-[#008080]/90 h-12 w-12 rounded-full text-white border-none outline-none cursor-pointer focus:bg-[#008080] hover:h-14 hover:w-14 transition-all ease-in-out duration-700">
-         <i class="las la-calculator text-4xl font-extrabold"></i>
+      <button v-if="!isCalcOpen" @click="isCalcOpen = true" class="fixed left-12 bottom-20 z-10 bg-[#008080]/90 h-12 w-12 rounded-full text-white border-none outline-none cursor-pointer focus:bg-[#008080] hover:h-14 hover:w-14 transition-all ease-in-out duration-700">
+         <i class="las la-calculator text-3xl font-extrabold"></i>
       </button>
       <button v-if="!isModalOpen" @click="isModalOpen = true" class="fixed right-12 bottom-20 z-10 bg-[#1f2f61b3] h-12 w-12 rounded-full text-white border-none outline-none cursor-pointer focus:bg-[#1f2f61] hover:rotate-[360deg] transition-transform ease-in-out duration-700">
-         <i class="las la-plus text-3xl font-extrabold"></i>
+         <i class="las la-plus text-2xl font-extrabold"></i>
       </button>
     </div>
 
