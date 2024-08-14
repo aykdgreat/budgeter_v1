@@ -1,2 +1,5 @@
 tailwind.config.js
 .vscode
+sw.js
+manifest.json
+icon512.png

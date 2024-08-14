@@ -64,7 +64,7 @@ createApp({
          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
          if (val === undefined || val === "") {
             histMonth.value = new Date().getMonth() + 1
-            histMonthWord.value = months[histMonth.value - 1]
+            histMonthWord.value = new Date().toLocaleString('default', {month: 'long'})
          } else {
             histMonth.value = val
             histMonthWord.value = months[histMonth.value - 1]
