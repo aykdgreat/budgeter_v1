@@ -1,18 +1,41 @@
+const VERSION = "v1";
+const CACHE_NAME = `my-budgeter-${VERSION}`;
+
+const APP_STATIC_RESOURCES = [
+  "/",
+  '/index.html',
+  '/css',
+  '/css/budget.css',
+  '/css/line/line-awesome.css',
+  '/css/fonts/la-solid-900.ttf',
+  '/js/script.js',
+  '/js/tailwind.js',
+  '/js/vue.global.prod.js',
+  '/icon512.png',
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open('my-pwa-cache').then(cache => {
-      return cache.addAll([
-        '/index.html',
-        '/css/budget.css',
-        '/js/script.js',
-        '/js/tailwind.js',
-        '/js/vue.global.js',
-        '/icon512.png',
-        
-        'https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css'
-      ]);
-    })
+     (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      cache.addAll(APP_STATIC_RESOURCES);
+    })(),
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      const names = await caches.keys();
+      await Promise.all(
+        names.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
+        }),
+      );
+      await clients.claim();
+    })(),
   );
 });
 

@@ -10,7 +10,7 @@ createApp({
    setup() {
       let isHistActive = ref(false)
       let isRecActive = ref(true)
-      let isStatActive = ref(false)
+      let isRatioActive = ref(false)
       let isModalOpen = ref(false)
 
       const budget = ref([])
@@ -257,7 +257,7 @@ createApp({
 
 
       return {
-         isHistActive, isRecActive, isStatActive, isModalOpen,
+         isHistActive, isRecActive, isRatioActive, isModalOpen,
          budget, sign, bal, inc, exp, title, amount, type, date, mode,
          msg, handleSubmit, calcIncExp,
          setHistMonth, histMonth, fetchMonthInfo, monthInfo, monthInfoData, sortedMonthInfoData,

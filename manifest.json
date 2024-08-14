@@ -1,6 +1,12 @@
 {
+   "name":"My Budgeter",
+   "short_name":"MyBudgeter",
+   "description": "Browser based budget tracker application for easily managing income and expenses.",
+   "start_url":"/index.html",
+   "id": "/index.html",
    "theme_color":"#1f2f61",
-   "background_color":"#e6e6e6",
+   "background_color":"#e4e9f1",
+   "display":"standalone",
    "icons":[
       {
          "purpose":"any",
@@ -8,11 +14,5 @@
          "src":"icon512.png",
          "type":"image/png"
       }],
-   "orientation":"any",
-   "display":"standalone",
-   "dir":"auto",
-   "lang":"en-US",
-   "name":"MyBudgeter",
-   "short_name":"MB",
-   "start_url":"/index.html"
+   "orientation":"portrait-primary"
 }
