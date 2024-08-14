@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>MyBudgeter.app</title>
-    <!--<link rel="manifest" href="manifest.json">-->
     <link rel="stylesheet" href="css/budget.css" />
     <link rel="stylesheet" href="css/line/line-awesome.css" type="text/css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -168,17 +167,17 @@
 
           <div :class="isStatActive ? 'block' : 'hidden'" class="h-64">
              
-             <div v-if="monthData.length == 0" class="flex flex-col justify-center items-center">
+             <div class="flex flex-col justify-center items-center">
                 <div class="mx-auto my-8" ref="chart"></div>
-                <h1 class="text-center text-lg">Income - Expense Ratio for present month</h1>
-             </div>
-              <ul v-else>
+                <!--<ul>
                 <li class="bg-white mx-2 my-2 p-3 shadow-sm">
                   No record found, click 
                     <a @click="isModalOpen = true" class="text-[#869feb] underline decoration-dotted decoration-1 underline-offset-4" href="#">here</a>
                   to add now :)
                 </li>
-              </ul>
+              </ul>-->
+                <h1 class="text-center text-lg">Income - Expense Ratio for present month</h1>
+             </div>
           </div>
         </div>
       </main>
@@ -268,24 +267,5 @@
 
     <script src="js/vue.global.prod.js"></script>
     <script src="js/script.js"></script>
-    
-    
-    <!--
-    Dusabled PWA functionality 
-    <script>
-    if ('serviceWorker' in navigator) {
-     navigator.serviceWorker.register("sw.js").then(
-       (registration) => {
-         console.log("Service worker registration successful:", registration);
-       },
-       (error) => {
-         console.error(`Service worker registration failed: ${error}`);
-       },
-     );
-   } else {
-        console.error("Service workers are not supported.");
-    }
-  </script>
-    -->
   </body>
 </html>
