@@ -22,7 +22,7 @@ createApp({
       const title = ref("")
       const amount = ref("")
       const type = ref("income")
-      const date = ref("")
+      const date = ref(new Date().toISOString().substring(0,10))
       const mode = ref("cash")
       const msg = ref("")
 
@@ -54,10 +54,12 @@ createApp({
       const op = ['+', '-', '*', '/']
       const prev = ref("")
       const selectedOp = ref("")
+      
+      const searchInput = ref("")
 
       const recent = {
-         today: ((new Date()).toISOString()).substr(0, 10),
-         yesterday: (new Date(Date.now() - 86400000)).toISOString().substr(0, 10)
+         today: ((new Date()).toISOString()).substring(0, 10),
+         yesterday: (new Date(Date.now() - 86400000)).toISOString().substring(0, 10)
       }
 
       const setHistMonth = (val) => {
@@ -108,7 +110,7 @@ createApp({
          title.value = ""
          amount.value = ""
          type.value = "income"
-         date.value = ""
+         date.value = new Date().toISOString().substring(0,10)
          mode.value = "cash"
          isEditting.value = null
       }
@@ -158,7 +160,9 @@ createApp({
       const deleteEntry = (timestamp) => {
          if(!confirm("Sure to delete?")) return
          
-         budget.value = budget.value.filter(entry => entry.created_at !== parseInt(timestamp))
+         let id = budget.value.findIndex(entry => entry.created_at === timestamp)
+         budget.value.splice(id, 1)
+         
          updateUI()
          localStorage.setItem("budget", JSON.stringify(budget.value))
       }
@@ -185,7 +189,8 @@ createApp({
             yesterdayInfo.value = budget.value.filter(entry => entry.date === recent.yesterday) || []
             fetchMonthInfo()
             sign.value = (inc.value >= exp.value) ? "#" : "- #"
-            return bal.value = Math.abs(inc.value - exp.value)
+            bal.value = Math.abs(inc.value - exp.value)
+            rollOver()
          }
          
       const createChart = () => {
@@ -195,6 +200,7 @@ createApp({
          ctx.value = canvas.value.getContext("2d")
          ctx.value.lineWidth = 20
       }
+
       function updateChart(inc, exp){
          ctx.value.clearRect(0, 0, canvas.value.width, canvas.value.height)
          
@@ -248,6 +254,73 @@ createApp({
          
       }
       
+      const rollOver = (cashBalance, acctBalance) => {
+         const month = new Date().getMonth() + 1
+         const last = new Date(2024,month,0).getDate() // last day of the month
+         const first = new Date(2024,month,1).getDate() // first day of the month
+         
+         if(new Date(Date.now()).getDate() === last) {
+            let bal = {
+               cash: cashBal.value,
+               account: acctBal.value
+            }
+            localStorage.setItem('lastDayOfMonthBal', JSON.stringify(bal))
+            console.log("Balance stored successfully", bal)
+         } else if (new Date(Date.now()).getDate() === first) { //first
+            // get localStorage and add new entry
+            if (localStorage.getItem("lastDayOfMonthBal") !== 'undefined') { //04:30
+               // calculate balance and save to var
+               let bal = JSON.parse(localStorage.getItem('lastDayOfMonthBal'))
+               console.log("Balance retrieved succesfully", bal)
+               /*budget.value.unshift({
+                  title: "Previous cash balance",
+                  amount: bal.cash,
+                  type: "income",
+                  date: "2024-09-01",
+                  mode: "cash",
+                  created_at: Date.now()
+               }   
+               budget.value.unshift({
+                  title: "Previous account balance",
+                  amount: bal.account,
+                  type: "income",
+                  date: "2024-09-01",
+                  mode: "account",
+                  created_at: Date.now()
+               })   */
+               console.log(cashBal.value)
+               cashBal.value += 3400
+               console.log(cashBal.value)
+               acctBal.value += 1500
+
+               localStorage.setItem('budget', JSON.stringify(budget.value))
+               //localStorage.removeItem('lastDayOfMonthBal')
+               updateUI()
+               // inc.value = 0
+            }  //else {
+                //console.log("Already retrieved :)");
+             //}
+         }
+      }
+      
+      const searchBudget = () => {
+         // sortedMonthInfoData.value.filter(obj => obj.title.includes(searchInput.value))
+        if (searchInput.value !== "") {
+            sortedMonthInfoData.value = Object.fromEntries(
+               Object.entries(sortedMonthInfoData.value).filter(([key, value]) =>
+                value.some(item => JSON.stringify(item.title.toLowerCase()).includes(searchInput.value.toLowerCase()))
+               ).map(([key, value]) => [
+                key,
+                value.filter(item => JSON.stringify(item.title.toLowerCase()).includes(searchInput.value.toLowerCase()))])
+            )
+         } else {
+            fetchMonthInfo()
+         }
+        /*
+         */
+         // console.log(result)
+      }
+      
       onMounted(() => {
          setHistMonth()
          budget.value = localStorage.getItem("budget") ? JSON.parse(localStorage.getItem("budget")) : []
@@ -265,7 +338,8 @@ createApp({
          updateUI, deleteEntry, monthBal, calcOptionBal, cashBal, acctBal, monthData, editEntry,
          isEditting, createChart, chart,
          isCalcOpen, display, button, prev, selectedOp,
-         resetFields
+         resetFields,
+         searchInput, searchBudget
       }
    }
 }).mount("#app")

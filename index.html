@@ -47,18 +47,21 @@
         </div>
         <div class="px-6">
           <div class="grid grid-cols-3 place-items-center mb-4 py-2.5 text-center text-[#1f2f61]/80 font-bold">
-            <div class="hist-tab cursor-pointer hover:text-[#1f2f61]" @click="isHistActive = true;isRecActive = false;isStatActive = false">
+            <div class="hist-tab cursor-pointer hover:text-[#1f2f61]" @click="isHistActive = true;isRecActive = false;isRatioActive = false">
               History
             </div>
-            <div class="recent-tab cursor-pointer hover:text-[#1f2f61]" @click="isRecActive = true;isHistActive = false;isStatActive = false">
+            <div class="recent-tab cursor-pointer hover:text-[#1f2f61]" @click="isRecActive = true;isHistActive = false;isRatioActive = false">
               Recent
             </div>
-            <div class="inc-tab cursor-pointer hover:text-[#1f2f61]" @click="isStatActive = true;isHistActive = false;isRecActive = false">
-              Statistics
+            <div class="inc-tab cursor-pointer hover:text-[#1f2f61]" @click="isRatioActive = true;isHistActive = false;isRecActive = false">
+              Ratio
             </div>
           </div>
 
           <div :class="isHistActive ? 'block' : 'hidden'">
+              <form class="mx-12">
+                  <input type="text" v-model="searchInput" @keydown="searchBudget" class="block mx-auto w-2/4 h-full mb-2 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" placeholder="Search for an entry">
+              </form>
               <form class="mx-12">
                   <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
                     <option value="1">January</option>
@@ -165,7 +168,7 @@
             </div>
           </div>
 
-          <div :class="isStatActive ? 'block' : 'hidden'" class="h-64">
+          <div :class="isRatioActive ? 'block' : 'hidden'" class="h-64">
              
              <div class="flex flex-col justify-center items-center">
                 <div class="mx-auto my-8" ref="chart"></div>
