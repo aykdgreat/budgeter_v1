@@ -181,8 +181,8 @@ createApp({
             monthData.value = budget.value.filter(entry => (new Date(entry.date)).getMonth() + 1 === (new Date()).getMonth() +1) || []
             inc.value = calcIncExp("income", monthData.value)
             exp.value = calcIncExp("expense", monthData.value)
-            cashBal.value = (calcOptionBal("cash", "income", monthData.value) - calcOptionBal("cash", "expense", monthData.value))
-            acctBal.value = (calcOptionBal("account", "income", monthData.value) - calcOptionBal("account", "expense", monthData.value))
+            cashBal.value = (calcOptionBal("cash", "income", monthData.value) - calcOptionBal("cash", "expense", monthData.value) + calcOptionBal("account", "withdrawal", monthData.value))
+            acctBal.value = (calcOptionBal("account", "income", monthData.value) - calcOptionBal("account", "expense", monthData.value) - calcOptionBal("account", "withdrawal", monthData.value))
             updateChart(inc.value, exp.value)
             
             todayInfo.value = budget.value.filter(entry => entry.date === recent.today) || []
@@ -258,7 +258,7 @@ createApp({
          const month = new Date().getMonth() + 1
          const last = new Date(2024,month,0).getDate() // last day of the month
          const first = new Date(2024,month,1).getDate() // first day of the month
-         
+         /*
          if(new Date(Date.now()).getDate() === last) {
             let bal = {
                cash: cashBal.value,
@@ -287,7 +287,7 @@ createApp({
                   date: "2024-09-01",
                   mode: "account",
                   created_at: Date.now()
-               })   */
+               })   *+/
                console.log(cashBal.value)
                cashBal.value += 3400
                console.log(cashBal.value)
@@ -301,6 +301,7 @@ createApp({
                 //console.log("Already retrieved :)");
              //}
          }
+         */
       }
       
       const searchBudget = () => {

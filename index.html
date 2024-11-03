@@ -60,10 +60,10 @@
 
           <div :class="isHistActive ? 'block' : 'hidden'">
               <form class="mx-12">
-                  <input type="text" v-model="searchInput" @keydown="searchBudget" class="block mx-auto w-2/4 h-full mb-2 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" placeholder="Search for an entry">
+                  <input type="text" v-model="searchInput" @keydown="searchBudget" class="block mx-auto w-4/6 h-full mb-2 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" placeholder="Search for an entry">
               </form>
               <form class="mx-12">
-                  <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
+                  <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="text-center block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
                     <option value="1">January</option>
                     <option value="2">February</option>
                     <option value="3">March</option>
@@ -100,7 +100,8 @@
                   <div class="flex justify-between gap-2">
                     <span>{{ index + 1 }} {{item.title}}
                       <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile-alt']" ></i></span>
-                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                      <!--<span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>-->
+                    <span :class="['font-semibold', item.type === 'withdrawal' ? 'text-black' : item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                   <div class="absolute -right-14 top-0">
                       <i class="las la-edit text-slate-600 mr-2 text-2xl mt-2" @click="editEntry(item.created_at)"></i></span>
@@ -129,7 +130,7 @@
                   <div class="flex justify-between">
                     <span>{{ index + 1 }} {{item.title}}
                       <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
-                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                    <span :class="['font-semibold', item.type === 'withdrawal' ? 'text-black' : item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                 </li>
               </ul>
@@ -152,7 +153,7 @@
                   <div class="flex justify-between">
                     <span>{{ index + 1 }} {{item.title}}
                       <i :class="['las', item.mode === 'cash' ? 'la-money-bill-wave' : 'la-mobile']"></i></span>
-                    <span :class="['font-semibold', item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
+                    <span :class="['font-semibold', item.type === 'withdrawal' ? 'text-black' : item.type === 'income' ? 'text-[#1add7b]' : 'text-[#cc1212]']"># {{item.amount}}</span>
                   </div>
                 </li>
               </ul>
@@ -202,9 +203,10 @@
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
             <label for="tr-type" class="w-32 mr-6">Type</label>
-            <div class="w-full bg-[#eee] p-2.5 border-b-[#1f2f61] mb-4 flex justify-evenly">
-               <input name="tr-type" type="radio" v-model="type" value="income">Income
-               <input name="tr-type" type="radio" v-model="type" value="expense">Expense
+            <div class="w-full bg-[#eee] p-2.5 border-b-[#1f2f61] mb-4 grid grid-cols-2">
+               <div class="flex justify-center items-center"><input name="tr-type" type="radio" v-model="type" value="income" class="mr-1">Income</div>
+               <div class="flex justify-center items-center"><input name="tr-type" type="radio" v-model="type" value="expense" class="mr-1">Expense</div>
+               <div class="flex justify-center items-center col-span-2"><input name="tr-type" type="radio" v-model="type" value="withdrawal" class="mr-1">Withdrawal</div>
             </div>
           </div>
           <div class="flex max-w-sm justify-between items-baseline">
@@ -214,8 +216,8 @@
           <div class="flex max-w-sm justify-between items-baseline">
             <label for="tr-mode" class="w-32 mr-6">Pay. Mode</label>
             <div class="w-full bg-[#eee] p-2.5 border-b-[#1f2f61] mb-4 flex justify-evenly">
-               <input name="tr-mode" type="radio" v-model="mode" value="cash">Cash
-               <input name="tr-mode" type="radio" v-model="mode" value="account">Account
+               <div class="flex justify-center items-center"><input name="tr-mode" type="radio" v-model="mode" value="cash" class="mr-1">Cash</div>
+               <div class="flex justify-center items-center"><input name="tr-mode" type="radio" v-model="mode" value="account" class="mr-1">Account</div>
             </div>
           </div>
           <input type="submit" class="w-full rounded-full bg-[#1f2f61] my-1 p-2 text-white border-none uppercase font-[Poppins] cursor-pointer text-xl" name="add-transaction" :value="[isEditting ? 'Edit Transaction' : 'Add Transaction']" />
