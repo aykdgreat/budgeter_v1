@@ -63,7 +63,7 @@
                   <input type="text" v-model="searchInput" @keydown="searchBudget" class="block mx-auto w-4/6 h-full mb-2 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" placeholder="Search for an entry">
               </form>
               <form class="mx-12">
-                  <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="text-center block mx-auto w-2/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
+                  <select v-model.number="histMonth" @change.prevent="fetchMonthInfo" class="text-center block mx-auto w-2/4 h-full mb-2 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
                     <option value="1">January</option>
                     <option value="2">February</option>
                     <option value="3">March</option>
@@ -77,20 +77,24 @@
                     <option value="11">November</option>
                     <option value="12">December</option>
                   </select>
+                  <select v-model.number="entryYear" @change.prevent="fetchMonthInfo" class="text-center block mx-auto w-1/4 h-full mb-4 rounded-full py-2 px-3 bg-[#eee] border-b-[3px] border-b-[#1f2f61] focus:outline-[#1f2f61] focus:outline-double" >
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
               </form>
 
             <div v-if="monthInfo.length > 0">
               <div class="text-center">
                 <div>
-                  <span>{{histMonthWord}} income: </span>
+                  <span>{{histMonthWord}} {{entryYear}} income: </span>
                   <span># {{monthInc}}</span>
                 </div>
                 <div>
-                  <span>{{histMonthWord}} expense: </span>
+                  <span>{{histMonthWord}} {{entryYear}} expense: </span>
                   <span># {{ monthExp }}</span>
                 </div>
                 <div v-if="histMonth !== (new Date()).getMonth() +1">
-                  <span>{{histMonthWord}} balance: </span>
+                  <span>{{histMonthWord}} {{entryYear}} balance: </span>
                   <span># {{ monthBal }}</span>
                 </div>
               </div>
@@ -113,7 +117,7 @@
             <div v-else>
               <ul>
                 <li class="bg-white mx-2 my-2 p-3 shadow-sm">
-                  No record for {{histMonthWord}} yet, click
+                  No record for {{histMonthWord}} {{entryYear}} yet, click
                     <a @click="isModalOpen = true" class="text-[#869feb] underline decoration-dotted decoration-1 underline-offset-4" href="#">here</a>
                     to add now
                 </li>

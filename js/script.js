@@ -56,13 +56,21 @@ createApp({
       const selectedOp = ref("")
       
       const searchInput = ref("")
+      
+      const prevMonthInfo = ref("")
+      
+      const entryYear = ref("")
+      const prevMonthCashBal = ref(0)
+      const prevMonthAcctBal = ref(0)
+      const prevMonthBal = ref(0)
 
       const recent = {
          today: ((new Date()).toISOString()).substring(0, 10),
-         yesterday: (new Date(Date.now() - 86400000)).toISOString().substring(0, 10)
+         yesterday: (new Date(Date.now() - 86400000)).toISOString().substring(0, 10),
+         year: (new Date()).getFullYear()
       }
 
-      const setHistMonth = (val) => {
+      const setHistMonth = (val, year) => {
          const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
          if (val === undefined || val === "") {
             histMonth.value = new Date().getMonth() + 1
@@ -71,6 +79,13 @@ createApp({
             histMonth.value = val
             histMonthWord.value = months[histMonth.value - 1]
          }
+         
+         if (year !== undefined) {
+            entryYear.value = year
+         } else {
+            entryYear.value = recent.year
+         }
+         //console.log(entryYear.value)
       }
 
       const handleSubmit = () => {
@@ -137,9 +152,9 @@ createApp({
       }
 
       const fetchMonthInfo = () => {
-         setHistMonth(histMonth.value)
+         setHistMonth(histMonth.value, entryYear.value)
       
-         monthInfo.value = budget.value.filter(entry => (new Date(entry.date)).getMonth() + 1 === histMonth.value) || []
+         monthInfo.value = budget.value.filter(entry => (new Date(entry.date)).getMonth() + 1 === histMonth.value && (new Date(entry.date)).getFullYear() === entryYear.value) || []
          monthInc.value = calcIncExp("income", monthInfo.value)
          monthExp.value = calcIncExp("expense", monthInfo.value)
          monthBal.value = monthInc.value - monthExp.value
@@ -181,16 +196,15 @@ createApp({
             monthData.value = budget.value.filter(entry => (new Date(entry.date)).getMonth() + 1 === (new Date()).getMonth() +1) || []
             inc.value = calcIncExp("income", monthData.value)
             exp.value = calcIncExp("expense", monthData.value)
-            cashBal.value = (calcOptionBal("cash", "income", monthData.value) - calcOptionBal("cash", "expense", monthData.value) + calcOptionBal("account", "withdrawal", monthData.value))
-            acctBal.value = (calcOptionBal("account", "income", monthData.value) - calcOptionBal("account", "expense", monthData.value) - calcOptionBal("account", "withdrawal", monthData.value))
+            cashBal.value = ((prevMonthCashBal.value + calcOptionBal("cash", "income", monthData.value)) - calcOptionBal("cash", "expense", monthData.value) + calcOptionBal("account", "withdrawal", monthData.value))
+            acctBal.value = ((prevMonthAcctBal.value + calcOptionBal("account", "income", monthData.value)) - calcOptionBal("account", "expense", monthData.value) - calcOptionBal("account", "withdrawal", monthData.value))
             updateChart(inc.value, exp.value)
             
             todayInfo.value = budget.value.filter(entry => entry.date === recent.today) || []
             yesterdayInfo.value = budget.value.filter(entry => entry.date === recent.yesterday) || []
             fetchMonthInfo()
-            sign.value = (inc.value >= exp.value) ? "#" : "- #"
-            bal.value = Math.abs(inc.value - exp.value)
-            rollOver()
+            sign.value = ((prevMonthBal.value + inc.value) >= exp.value) ? "#" : "- #"
+            bal.value = Math.abs((prevMonthBal.value + inc.value) - exp.value)
          }
          
       const createChart = () => {
@@ -254,56 +268,6 @@ createApp({
          
       }
       
-      const rollOver = (cashBalance, acctBalance) => {
-         const month = new Date().getMonth() + 1
-         const last = new Date(2024,month,0).getDate() // last day of the month
-         const first = new Date(2024,month,1).getDate() // first day of the month
-         /*
-         if(new Date(Date.now()).getDate() === last) {
-            let bal = {
-               cash: cashBal.value,
-               account: acctBal.value
-            }
-            localStorage.setItem('lastDayOfMonthBal', JSON.stringify(bal))
-            console.log("Balance stored successfully", bal)
-         } else if (new Date(Date.now()).getDate() === first) { //first
-            // get localStorage and add new entry
-            if (localStorage.getItem("lastDayOfMonthBal") !== 'undefined') { //04:30
-               // calculate balance and save to var
-               let bal = JSON.parse(localStorage.getItem('lastDayOfMonthBal'))
-               console.log("Balance retrieved succesfully", bal)
-               /*budget.value.unshift({
-                  title: "Previous cash balance",
-                  amount: bal.cash,
-                  type: "income",
-                  date: "2024-09-01",
-                  mode: "cash",
-                  created_at: Date.now()
-               }   
-               budget.value.unshift({
-                  title: "Previous account balance",
-                  amount: bal.account,
-                  type: "income",
-                  date: "2024-09-01",
-                  mode: "account",
-                  created_at: Date.now()
-               })   *+/
-               console.log(cashBal.value)
-               cashBal.value += 3400
-               console.log(cashBal.value)
-               acctBal.value += 1500
-
-               localStorage.setItem('budget', JSON.stringify(budget.value))
-               //localStorage.removeItem('lastDayOfMonthBal')
-               updateUI()
-               // inc.value = 0
-            }  //else {
-                //console.log("Already retrieved :)");
-             //}
-         }
-         */
-      }
-      
       const searchBudget = () => {
          // sortedMonthInfoData.value.filter(obj => obj.title.includes(searchInput.value))
         if (searchInput.value !== "") {
@@ -325,6 +289,12 @@ createApp({
       onMounted(() => {
          setHistMonth()
          budget.value = localStorage.getItem("budget") ? JSON.parse(localStorage.getItem("budget")) : []
+         prevMonthInfo.value = budget.value.filter(entry => (new Date(entry.date)).getMonth() === new Date().getMonth() -1 )
+         prevMonthCashBal.value = (calcOptionBal("cash", "income", prevMonthInfo.value) - calcOptionBal("cash", "expense", prevMonthInfo.value) + calcOptionBal("account", "withdrawal", prevMonthInfo.value))
+         prevMonthAcctBal.value = (calcOptionBal("account", "income", prevMonthInfo.value) - calcOptionBal("account", "expense", prevMonthInfo.value) - calcOptionBal("account", "withdrawal", prevMonthInfo.value))
+         prevMonthBal.value = prevMonthCashBal.value + prevMonthAcctBal.value
+         //console.log(prevMonthBal.value)
+         
          createChart()
          updateUI()
       })
@@ -340,7 +310,9 @@ createApp({
          isEditting, createChart, chart,
          isCalcOpen, display, button, prev, selectedOp,
          resetFields,
-         searchInput, searchBudget
+         searchInput, searchBudget,
+         prevMonthInfo, 
+         entryYear, prevMonthCashBal, prevMonthAcctBal, prevMonthBal
       }
    }
 }).mount("#app")
